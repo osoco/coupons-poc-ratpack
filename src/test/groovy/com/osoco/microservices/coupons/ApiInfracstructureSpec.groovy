@@ -1,21 +1,38 @@
 package com.osoco.microservices.coupons
 
 import ratpack.groovy.test.GroovyRatpackMainApplicationUnderTest
+import ratpack.http.MediaType
 import ratpack.test.ServerBackedApplicationUnderTest
 import ratpack.test.http.TestHttpClient
+import spock.lang.AutoCleanup
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static groovy.json.JsonOutput.toJson
+
 class APIInfracstructureSpec extends Specification {
 
+    @AutoCleanup
     ServerBackedApplicationUnderTest aut = new GroovyRatpackMainApplicationUnderTest()
     @Delegate
     TestHttpClient client = TestHttpClient.testHttpClient(aut)
 
+    def setup() {
+        def coupon = [code: "testCode", name: "testName", description: "testDescription", numMaxUsage: 100, expirationDate: "2016/06/01", discount: 10]
+
+        resetRequest()
+        requestSpec { spec ->
+            spec.headers.add("Content-Type", MediaType.APPLICATION_JSON)
+            spec.body { b ->
+                b.text(toJson(coupon))
+            }
+        }
+    }
+
     @Unroll
     def "Checking CORS headers in response for '#path'"() {
 
-        client.get(path)
+        get(path)
 
         expect:
         response.headers.contains("Access-Control-Allow-Origin") == result
@@ -33,7 +50,7 @@ class APIInfracstructureSpec extends Specification {
     @Unroll
     def "Checking if GET '#path' returns #statusCode http status code"() {
 
-        client.get(path)
+        get(path)
 
         expect:
         response.statusCode == statusCode
@@ -52,7 +69,7 @@ class APIInfracstructureSpec extends Specification {
     @Unroll
     def "Checking if POST '#path' returns #statusCode http status code"() {
 
-        client.post(path)
+        post path
 
         expect:
         response.statusCode == statusCode
@@ -71,7 +88,7 @@ class APIInfracstructureSpec extends Specification {
     @Unroll
     def "Checking if PUT '#path' returns #statusCode http status code"() {
 
-        client.put(path)
+        put(path)
 
         expect:
         response.statusCode == statusCode
@@ -90,7 +107,7 @@ class APIInfracstructureSpec extends Specification {
     @Unroll
     def "Checking if DELETE '#path' returns #statusCode http status code"() {
 
-        client.delete(path)
+        delete(path)
 
         expect:
         response.statusCode == statusCode

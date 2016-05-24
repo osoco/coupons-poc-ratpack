@@ -1,46 +1,31 @@
 import com.osoco.microservices.coupons.handlers.CORSHandler
-import com.osoco.microservices.coupons.handlers.CouponsHandler
-import com.osoco.microservices.coupons.handlers.RedemptionsHandler
-import com.osoco.microservices.coupons.handlers.ValidationsHandler
+import com.osoco.microservices.coupons.handlers.CouponHandler
+import com.osoco.microservices.coupons.handlers.RedemptionHandler
+import com.osoco.microservices.coupons.handlers.ValidationHandler
+import com.osoco.microservices.coupons.modules.CouponModule
+import ratpack.handling.RequestLogger
 
 import static ratpack.groovy.Groovy.ratpack
 
 ratpack {
     bindings {
+        add(RequestLogger.ncsa())
         add(new CORSHandler())
-        add(new CouponsHandler())
-        add(new RedemptionsHandler())
-        add(new ValidationsHandler())
+        add(new CouponHandler())
+        add(new RedemptionHandler())
+        add(new ValidationHandler())
+
+        module(CouponModule.class)
     }
 
     handlers {
+        all(RequestLogger)
         all(CORSHandler)
         prefix("api") {
-            path("coupons") {
-                byMethod {
-                    get {
-                        render "GET simple"
-                    }
-                    post {
-                        render "POST simple"
-                    }
-                    put {
-                        render "PUT simple"
-                    }
-                }
-            }
-            path("coupons/:code") {
-                byMethod {
-                    get {
-                        render "GET with coupon $pathTokens.code"
-                    }
-                    delete { ctx ->
-                        render "DELETE with coupon $pathTokens.code"
-                    }
-                }
-            }
-            path("coupons/:code/validations", ValidationsHandler)
-            path("coupons/:code/redemptions", RedemptionsHandler)
+            path("coupons", CouponHandler)
+            path("coupons/:code", CouponHandler)
+            path("coupons/:code/validations", ValidationHandler)
+            path("coupons/:code/redemptions", RedemptionHandler)
         }
 
         files { dir "public" }

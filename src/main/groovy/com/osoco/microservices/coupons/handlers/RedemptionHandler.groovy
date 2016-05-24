@@ -3,7 +3,7 @@ package com.osoco.microservices.coupons.handlers
 import ratpack.handling.Context
 import ratpack.handling.Handler
 
-class RedemptionsHandler implements Handler {
+class RedemptionHandler implements Handler {
 
     @Override
     void handle(Context context) throws Exception {
