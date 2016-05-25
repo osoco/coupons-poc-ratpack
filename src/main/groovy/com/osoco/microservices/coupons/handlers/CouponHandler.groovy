@@ -22,57 +22,77 @@ class CouponHandler extends InjectionHandler {
         }
     }
 
-    private handleRequestWithoutPathTokens(Context context, couponRepository) {
+    private handleRequestWithPathTokens(Context context, CouponRepository couponRepository) {
         context.byMethod { method ->
             method.get {
-                Promise<List<Coupon>> couponsToRetrieve = couponRepository.get()
-                couponsToRetrieve.then { coupons ->
-                    context.render(Jackson.json(coupons))
-                }
+                get(context, couponRepository)
             }
-            method.post {
-                Promise<Coupon> couponToStore = context.parse(Jackson.fromJson(Coupon.class))
-                couponToStore.then { coupon ->
-                    try {
-                        couponRepository.add(coupon)
-                        context.response.status(Status.OK).send()
-                    } catch (AlreadyExistsException except) {
-                        context.response.status(Status.of(409)).send()
-                    }
-                }
-            }
-            method.put {
-                Promise<Coupon> couponToUpdate = context.parse(Jackson.fromJson(Coupon.class))
-                couponToUpdate.then { coupon ->
-                    try {
-                        couponRepository.update(coupon)
-                        context.response.status(Status.OK).send()
-                    } catch (NotFoundException except) {
-                        context.response.status(Status.of(404)).send()
-                    }
-                }
+            method.delete {
+                delete(context, couponRepository)
             }
         }
     }
 
-    private handleRequestWithPathTokens(Context context, CouponRepository couponRepository) {
+    private handleRequestWithoutPathTokens(Context context, CouponRepository couponRepository) {
         context.byMethod { method ->
             method.get {
-                Promise<Coupon> couponToRetrieve = couponRepository.get(context.pathTokens.code)
-                couponToRetrieve.onError { notFoundExcept ->
-                    context.response.status(Status.of(404)).send()
-                }.then { coupon ->
-                    context.render(Jackson.json(coupon))
-                }
+                getAll(context, couponRepository)
             }
-            method.delete {
-                try {
-                    couponRepository.delete(context.pathTokens.code)
-                    context.response.status(Status.OK).send()
-                } catch (NotFoundException except) {
-                    context.response.status(Status.of(404)).send()
-                }
+            method.post {
+                add(context, couponRepository)
             }
+            method.put {
+                update(context, couponRepository)
+            }
+        }
+    }
+
+    private void getAll(Context context, CouponRepository couponRepository) {
+        Promise<List<Coupon>> couponsToRetrieve = couponRepository.get()
+        couponsToRetrieve.then { coupons ->
+            context.render(Jackson.json(coupons))
+        }
+    }
+
+    private void add(Context context, CouponRepository couponRepository) {
+        Promise<Coupon> couponToStore = context.parse(Jackson.fromJson(Coupon.class))
+        couponToStore.then { coupon ->
+            try {
+                couponRepository.add(coupon)
+                context.response.status(Status.OK).send()
+            } catch (AlreadyExistsException ex) {
+                context.response.status(Status.of(409)).send()
+            }
+        }
+    }
+
+    private void update(Context context, CouponRepository couponRepository) {
+        Promise<Coupon> couponToUpdate = context.parse(Jackson.fromJson(Coupon.class))
+        couponToUpdate.then { coupon ->
+            try {
+                couponRepository.update(coupon)
+                context.response.status(Status.OK).send()
+            } catch (NotFoundException ex) {
+                context.response.status(Status.of(404)).send()
+            }
+        }
+    }
+
+    private void get(Context context, CouponRepository couponRepository) {
+        Promise<Coupon> couponToRetrieve = couponRepository.get(context.pathTokens.code)
+        couponToRetrieve.onError { notFoundException ->
+            context.response.status(Status.of(404)).send()
+        }.then { coupon ->
+            context.render(Jackson.json(coupon))
+        }
+    }
+
+    private void delete(Context context, CouponRepository couponRepository) {
+        try {
+            couponRepository.delete(context.pathTokens.code)
+            context.response.status(Status.OK).send()
+        } catch (NotFoundException ex) {
+            context.response.status(Status.of(404)).send()
         }
     }
 
