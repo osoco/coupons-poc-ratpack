@@ -66,4 +66,20 @@ class CouponRepositoryImpl implements CouponRepository {
             throw new NotFoundException()
         }
     }
+
+    @Override
+    void delete(String code) throws NotFoundException {
+        log.info "Trying to delete coupon ${code}"
+        Coupon existing = coupons.get(code)
+        log.info "Exists? " + (existing)
+        if (existing) {
+            // TODO jbr - asynchronous
+            log.info "Deleting"
+            coupons.remove(code)
+            log.info "Coupon ${code} removed!"
+        } else {
+            log.info "NOT Existing coupon: ${code}"
+            throw new NotFoundException()
+        }
+    }
 }

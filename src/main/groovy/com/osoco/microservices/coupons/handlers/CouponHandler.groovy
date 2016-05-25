@@ -66,7 +66,12 @@ class CouponHandler extends InjectionHandler {
                 }
             }
             method.delete {
-                context.render "DELETE with coupon $context.pathTokens.code"
+                try {
+                    couponRepository.delete(context.pathTokens.code)
+                    context.response.status(Status.OK).send()
+                } catch (NotFoundException except) {
+                    context.response.status(Status.of(404)).send()
+                }
             }
         }
     }

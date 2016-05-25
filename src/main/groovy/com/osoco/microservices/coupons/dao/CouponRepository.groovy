@@ -15,4 +15,6 @@ interface CouponRepository {
 
     void update(Coupon coupon) throws NotFoundException
 
+    void delete(String code) throws NotFoundException
+
 }

@@ -213,4 +213,24 @@ class APIFunctionalSpec extends Specification {
         coupon.equals(parsedCoupon)
     }
 
+    void "Delete coupon that doesn't exist"() {
+        when:
+        def response = delete(COUPONS_URL + "/doesntExist")
+
+        then:
+        response.statusCode == 404
+    }
+
+    void "Delete coupon that exists"() {
+        setup:
+        Coupon coupon = buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)
+        populateForTesting(coupon)
+
+        when:
+        def response = delete(COUPONS_URL + "/" + coupon.code)
+
+        then:
+        response.statusCode == 200
+    }
+
 }
