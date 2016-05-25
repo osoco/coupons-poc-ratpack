@@ -7,14 +7,14 @@ import ratpack.exec.Promise
 
 interface CouponRepository {
 
-    void add(Coupon coupon) throws AlreadyExistsException
+    Promise<Coupon> add(Coupon coupon) throws AlreadyExistsException
 
     Promise<Coupon> get(String code) throws NotFoundException
 
     Promise<List<Coupon>> get()
 
-    void update(Coupon coupon) throws NotFoundException
+    Promise<Coupon> update(Coupon coupon) throws NotFoundException
 
-    void delete(String code) throws NotFoundException
+    Promise<Coupon> delete(String code) throws NotFoundException
 
 }

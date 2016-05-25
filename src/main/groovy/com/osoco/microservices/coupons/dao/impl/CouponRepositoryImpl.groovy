@@ -14,27 +14,25 @@ class CouponRepositoryImpl implements CouponRepository {
     Map<String, Coupon> coupons = new HashMap<String, Coupon>()
 
     @Override
-    void add(Coupon coupon) throws AlreadyExistsException {
-        log.info "Trying to store coupon ${coupon.code}"
-        // TODO jbr - coupon validation
-        Coupon existing = coupons.get(coupon.code)
-        log.info "Exists? " + (existing)
-        if (existing) {
-            log.info "Existing coupon: ${existing.code}"
-            throw new AlreadyExistsException()
-        } else {
-            // TODO jbr - asynchronous
-            log.info "Persisting"
-            coupons.put(coupon.code, coupon)
-            log.info "Coupon ${coupon.code} added!"
+    Promise<Coupon> add(Coupon coupon) throws AlreadyExistsException {
+        log.info "Storing coupon $coupon.code"
+        Blocking.get {
+            // TODO jbr - coupon validation
+            Coupon existing = coupons.get(coupon.code)
+            if (existing) {
+                throw new AlreadyExistsException()
+            } else {
+                log.info "Coupon $coupon.code added!"
+                coupons.put(coupon.code, coupon)
+            }
         }
     }
 
     @Override
     Promise<Coupon> get(String code) throws NotFoundException {
+        log.info "Getting coupon with code: $code"
         Blocking.get {
             Coupon existing = coupons.get(code)
-            log.info "Exists? " + (existing)
             if (existing) {
                 existing
             } else {
@@ -51,35 +49,31 @@ class CouponRepositoryImpl implements CouponRepository {
     }
 
     @Override
-    void update(Coupon coupon) throws NotFoundException {
-        log.info "Trying to update coupon ${coupon.code}"
-        // TODO jbr - coupon validation
-        Coupon existing = coupons.get(coupon.code)
-        log.info "Exists? " + (existing)
-        if (existing) {
-            // TODO jbr - asynchronous
-            log.info "Persisting"
-            coupons.put(coupon.code, coupon)
-            log.info "Coupon ${coupon.code} updated!"
-        } else {
-            log.info "NOT Existing coupon: ${coupon.code}"
-            throw new NotFoundException()
+    Promise<Coupon> update(Coupon coupon) throws NotFoundException {
+        log.info "Updating coupon $coupon.code"
+        Blocking.get {
+            // TODO jbr - coupon validation
+            Coupon existing = coupons.get(coupon.code)
+            if (existing) {
+                log.info "Coupon $coupon.code updated!"
+                coupons.put(coupon.code, coupon)
+            } else {
+                throw new NotFoundException()
+            }
         }
     }
 
     @Override
-    void delete(String code) throws NotFoundException {
-        log.info "Trying to delete coupon ${code}"
-        Coupon existing = coupons.get(code)
-        log.info "Exists? " + (existing)
-        if (existing) {
-            // TODO jbr - asynchronous
-            log.info "Deleting"
-            coupons.remove(code)
-            log.info "Coupon ${code} removed!"
-        } else {
-            log.info "NOT Existing coupon: ${code}"
-            throw new NotFoundException()
+    Promise<Coupon> delete(String code) throws NotFoundException {
+        log.info "Deleting coupon $code"
+        Blocking.get {
+            Coupon existing = coupons.get(code)
+            if (existing) {
+                log.info "Coupon $code removed!"
+                coupons.remove(code)
+            } else {
+                throw new NotFoundException()
+            }
         }
     }
 }

@@ -2,7 +2,6 @@ package com.osoco.microservices.coupons.handlers
 
 import com.google.inject.Inject
 import com.osoco.microservices.coupons.dao.CouponRepository
-import com.osoco.microservices.coupons.exception.AlreadyExistsException
 import com.osoco.microservices.coupons.exception.NotFoundException
 import com.osoco.microservices.coupons.model.Coupon
 import groovy.util.logging.Slf4j
@@ -33,7 +32,7 @@ class CouponHandler implements Handler {
                 get(context)
             }
             method.delete {
-                delete(context)
+                handleDelete(context)
             }
         }
     }
@@ -44,10 +43,10 @@ class CouponHandler implements Handler {
                 getAll(context)
             }
             method.post {
-                add(context)
+                handleAdd(context)
             }
             method.put {
-                update(context)
+                handleUpdate(context)
             }
         }
     }
@@ -59,27 +58,35 @@ class CouponHandler implements Handler {
         }
     }
 
-    private void add(Context context) {
+    private void handleAdd(Context context) {
         Promise<Coupon> couponToStore = context.parse(Jackson.fromJson(Coupon.class))
         couponToStore.then { coupon ->
-            try {
-                couponRepository.add(coupon)
-                context.response.status(Status.OK).send()
-            } catch (AlreadyExistsException ex) {
-                context.response.status(Status.of(409)).send()
-            }
+            store(context, coupon)
         }
     }
 
-    private void update(Context context) {
+    private void store(Context context, Coupon coupon) {
+        Promise<Coupon> couponAdded = couponRepository.add(coupon)
+        couponAdded.onError { alreadyExistsException ->
+            context.response.status(Status.of(409)).send()
+        }.then {
+            context.response.status(Status.OK).send()
+        }
+    }
+
+    private void handleUpdate(Context context) {
         Promise<Coupon> couponToUpdate = context.parse(Jackson.fromJson(Coupon.class))
         couponToUpdate.then { coupon ->
-            try {
-                couponRepository.update(coupon)
-                context.response.status(Status.OK).send()
-            } catch (NotFoundException ex) {
-                context.response.status(Status.of(404)).send()
-            }
+            update(context, coupon)
+        }
+    }
+
+    private void update(Context context, Coupon coupon) {
+        Promise<Coupon> couponUpdated = couponRepository.update(coupon)
+        couponUpdated.onError { notFoundException ->
+            context.response.status(Status.of(404)).send()
+        }.then {
+            context.response.status(Status.OK).send()
         }
     }
 
@@ -92,12 +99,12 @@ class CouponHandler implements Handler {
         }
     }
 
-    private void delete(Context context) {
-        try {
-            couponRepository.delete(context.pathTokens.code)
-            context.response.status(Status.OK).send()
-        } catch (NotFoundException ex) {
+    private void handleDelete(Context context) {
+        Promise<Coupon> couponDeleted = couponRepository.delete(context.pathTokens.code)
+        couponDeleted.onError { notFoundException ->
             context.response.status(Status.of(404)).send()
+        }.then {
+            context.response.status(Status.OK).send()
         }
     }
 
