@@ -1,12 +1,12 @@
 package com.osoco.microservices.coupons
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.osoco.microservices.coupons.model.Coupon
 import ratpack.groovy.test.GroovyRatpackMainApplicationUnderTest
 import ratpack.http.MediaType
 import ratpack.test.http.TestHttpClient
 import spock.lang.AutoCleanup
 import spock.lang.Specification
-
-import static groovy.json.JsonOutput.toJson
 
 class APIFunctionalSpec extends Specification {
 
@@ -18,24 +18,57 @@ class APIFunctionalSpec extends Specification {
     @Delegate
     TestHttpClient client = TestHttpClient.testHttpClient(aut)
 
-    def setup() {
-        def coupon = [code: "testCode", name: "testName", description: "testDescription", numMaxUsage: 100, expirationDate: "2016/06/01", discount: 10]
+    ObjectMapper objectMapper = new ObjectMapper()
 
+    def setup() {
         resetRequest()
+    }
+
+    Coupon buildCoupon(code, name, description, maxUsage, expirationDate, discount) {
+        Coupon coupon = [code: code, name: name, description: description, numMaxUsage: maxUsage, expirationDate: expirationDate, discount: discount]
+        coupon
+    }
+
+    def post(Coupon coupon) {
         requestSpec { spec ->
             spec.headers.add("Content-Type", MediaType.APPLICATION_JSON)
             spec.body { b ->
-                b.text(toJson(coupon))
+                b.text(objectMapper.writeValueAsString(coupon))
             }
         }
+        post(COUPONS_URL)
     }
 
-    void "POSTing new coupon"() {
+    void "Adding new coupon"() {
         when:
-        def response = post(COUPONS_URL)
+        Coupon coupon = buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)
+        def response = post(coupon)
 
         then:
         response.statusCode == 200
+
+        when:
+        response = get(COUPONS_URL + "/" + coupon.code)
+
+        and:
+        Coupon parsedCoupon = objectMapper.readValue(response.body.text, Coupon.class)
+
+        then:
+        response.statusCode == 200
+        coupon.equals(parsedCoupon)
+    }
+
+    void "Adding existing coupon"() {
+        when:
+        Coupon coupon = buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)
+        def response = post(coupon)
+
+        assert response.statusCode == 200
+
+        response = post(coupon)
+
+        then:
+        response.statusCode == 409
     }
 
 

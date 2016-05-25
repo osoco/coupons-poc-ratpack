@@ -1,6 +1,8 @@
 package com.osoco.microservices.coupons.dao.impl
 
 import com.osoco.microservices.coupons.dao.CouponRepository
+import com.osoco.microservices.coupons.exception.AlreadyExistsException
+import com.osoco.microservices.coupons.exception.NotFoundException
 import com.osoco.microservices.coupons.model.Coupon
 import groovy.util.logging.Slf4j
 import ratpack.exec.Blocking
@@ -12,15 +14,39 @@ class CouponRepositoryImpl implements CouponRepository {
     Map<String, Coupon> coupons = new HashMap<String, Coupon>()
 
     @Override
-    void add(Coupon coupon) {
+    void add(Coupon coupon) throws AlreadyExistsException {
+        log.info "Trying to store coupon ${coupon.code}"
+        // TODO jbr - coupon validation
         Coupon existing = coupons.get(coupon.code)
+        log.info "Exists? " + (existing)
         if (existing) {
-            // TODO jbr - Return exception or sth
-            log.info("Exising coupon: $coupon.code")
+            log.info "Existing coupon: ${existing.code}"
+            throw new AlreadyExistsException()
         } else {
-            Blocking.op {
-                coupons.put(coupon.code, coupon)
+            // TODO jbr - asynchronous
+            log.info "Persisting"
+            coupons.put(coupon.code, coupon)
+            log.info "Coupon ${coupon.code} added!"
+        }
+    }
+
+    @Override
+    Promise<Coupon> get(String code) throws NotFoundException {
+        Blocking.get {
+            Coupon existing = coupons.get(code)
+            log.info "Exists? " + (existing)
+            if (existing) {
+                existing
+            } else {
+                throw new NotFoundException()
             }
+        }
+    }
+
+    @Override
+    Promise<List<Coupon>> get() {
+        Blocking.get {
+            coupons.values().asList()
         }
     }
 }

@@ -60,7 +60,7 @@ class APIInfracstructureSpec extends Specification {
         "/"                             || 404
         "/api/coupons"                  || 200
         "/api/coupons/"                 || 200
-        "/api/coupons/1234/"            || 200
+        "/api/coupons/1234/"            || 404
         "/api/coupons/1234/validations" || 405
         "/api/coupons/1234/redemptions" || 405
         "/other"                        || 404
