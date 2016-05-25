@@ -1,52 +1,17 @@
 package com.osoco.microservices.coupons
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.type.TypeFactory
 import com.osoco.microservices.coupons.model.Coupon
-import ratpack.groovy.test.GroovyRatpackMainApplicationUnderTest
-import ratpack.http.MediaType
-import ratpack.test.http.TestHttpClient
-import spock.lang.AutoCleanup
-import spock.lang.Specification
 
-class APIFunctionalSpec extends Specification {
-
-
-    private static final String COUPONS_URL = "api/coupons"
-
-    @AutoCleanup
-    GroovyRatpackMainApplicationUnderTest aut = new GroovyRatpackMainApplicationUnderTest()
-    @Delegate
-    TestHttpClient client = TestHttpClient.testHttpClient(aut)
-
-    ObjectMapper objectMapper = new ObjectMapper()
+class APIFunctionalSpec extends APIBaseSpec {
 
     def setup() {
         resetRequest()
     }
 
-    void setRequestBody(Coupon coupon) {
-        requestSpec { spec ->
-            spec.headers.add("Content-Type", MediaType.APPLICATION_JSON)
-            spec.body { b ->
-                b.text(objectMapper.writeValueAsString(coupon))
-            }
-        }
-    }
-
-    def post(Coupon coupon) {
-        setRequestBody(coupon)
-        post(COUPONS_URL)
-    }
-
     def put(Coupon coupon) {
         setRequestBody(coupon)
         put(COUPONS_URL)
-    }
-
-    def populateForTesting(Coupon coupon) {
-        def response = post(coupon)
-        assert response.statusCode == 200
     }
 
     def parseAsCouponList(String text) {
@@ -55,11 +20,6 @@ class APIFunctionalSpec extends Specification {
 
     def parseAsCoupon(String text) {
         objectMapper.readValue(text, Coupon.class)
-    }
-
-    Coupon buildCoupon(code, name, description, maxUsage, expirationDate, discount) {
-        Coupon coupon = [code: code, name: name, description: description, numMaxUsage: maxUsage, expirationDate: expirationDate, discount: discount]
-        coupon
     }
 
     void "Adding new coupon"() {

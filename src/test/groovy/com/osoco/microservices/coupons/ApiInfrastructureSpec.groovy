@@ -1,32 +1,19 @@
 package com.osoco.microservices.coupons
 
-import ratpack.groovy.test.GroovyRatpackMainApplicationUnderTest
-import ratpack.http.MediaType
-import ratpack.test.ServerBackedApplicationUnderTest
-import ratpack.test.http.TestHttpClient
-import spock.lang.AutoCleanup
-import spock.lang.Specification
+import com.osoco.microservices.coupons.model.Coupon
 import spock.lang.Unroll
 
-import static groovy.json.JsonOutput.toJson
+class APIInfrastructureSpec extends APIBaseSpec {
 
-class APIInfracstructureSpec extends Specification {
-
-    @AutoCleanup
-    ServerBackedApplicationUnderTest aut = new GroovyRatpackMainApplicationUnderTest()
-    @Delegate
-    TestHttpClient client = TestHttpClient.testHttpClient(aut)
+    Coupon coupon1, coupon2
 
     def setup() {
-        def coupon = [code: "testCode", name: "testName", description: "testDescription", numMaxUsage: 100, expirationDate: "2016/06/01", discount: 10]
+        coupon1 = buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)
+        populateForTesting(coupon1)
 
+        coupon2 = buildCoupon("code2", "name2", "description2", 100, "2016/05/26", 25)
         resetRequest()
-        requestSpec { spec ->
-            spec.headers.add("Content-Type", MediaType.APPLICATION_JSON)
-            spec.body { b ->
-                b.text(toJson(coupon))
-            }
-        }
+        setRequestBody(coupon2)
     }
 
     @Unroll
@@ -50,20 +37,20 @@ class APIInfracstructureSpec extends Specification {
     @Unroll
     def "Checking if GET '#path' returns #statusCode http status code"() {
 
-        get(path)
+        get path
 
         expect:
         response.statusCode == statusCode
 
         where:
-        path                            || statusCode
-        "/"                             || 404
-        "/api/coupons"                  || 200
-        "/api/coupons/"                 || 200
-        "/api/coupons/1234/"            || 404
-        "/api/coupons/1234/validations" || 405
-        "/api/coupons/1234/redemptions" || 405
-        "/other"                        || 404
+        path                             || statusCode
+        "/"                              || 404
+        "/api/coupons"                   || 200
+        "/api/coupons/"                  || 200
+        "/api/coupons/code1/"            || 200
+        "/api/coupons/code1/validations" || 405
+        "/api/coupons/code1/redemptions" || 405
+        "/other"                         || 404
     }
 
     @Unroll
@@ -87,6 +74,9 @@ class APIInfracstructureSpec extends Specification {
 
     @Unroll
     def "Checking if PUT '#path' returns #statusCode http status code"() {
+        setup:
+        resetRequest()
+        setRequestBody(coupon1)
 
         put(path)
 
@@ -113,14 +103,14 @@ class APIInfracstructureSpec extends Specification {
         response.statusCode == statusCode
 
         where:
-        path                            || statusCode
-        "/"                             || 404
-        "/api/coupons"                  || 405
-        "/api/coupons/"                 || 405
-        "/api/coupons/1234/"            || 200
-        "/api/coupons/1234/validations" || 405
-        "/api/coupons/1234/redemptions" || 405
-        "/other"                        || 404
+        path                             || statusCode
+        "/"                              || 404
+        "/api/coupons"                   || 405
+        "/api/coupons/"                  || 405
+        "/api/coupons/code1/"            || 200
+        "/api/coupons/code1/validations" || 405
+        "/api/coupons/code1/redemptions" || 405
+        "/other"                         || 404
     }
 
 

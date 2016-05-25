@@ -1,5 +1,6 @@
 package com.osoco.microservices.coupons.handlers
 
+import com.google.inject.Inject
 import com.osoco.microservices.coupons.dao.CouponRepository
 import com.osoco.microservices.coupons.exception.AlreadyExistsException
 import com.osoco.microservices.coupons.exception.NotFoundException
@@ -7,54 +8,58 @@ import com.osoco.microservices.coupons.model.Coupon
 import groovy.util.logging.Slf4j
 import ratpack.exec.Promise
 import ratpack.handling.Context
-import ratpack.handling.InjectionHandler
+import ratpack.handling.Handler
 import ratpack.http.Status
 import ratpack.jackson.Jackson
 
 @Slf4j
-class CouponHandler extends InjectionHandler {
+class CouponHandler implements Handler {
 
-    public void handle(Context context, CouponRepository couponRepository) throws Exception {
+    @Inject
+    CouponRepository couponRepository
+
+    @Override
+    public void handle(Context context) throws Exception {
         if (context.pathTokens) {
-            handleRequestWithPathTokens(context, couponRepository)
+            handleRequestWithPathTokens(context)
         } else {
-            handleRequestWithoutPathTokens(context, couponRepository)
+            handleRequestWithoutPathTokens(context)
         }
     }
 
-    private handleRequestWithPathTokens(Context context, CouponRepository couponRepository) {
+    private handleRequestWithPathTokens(Context context) {
         context.byMethod { method ->
             method.get {
-                get(context, couponRepository)
+                get(context)
             }
             method.delete {
-                delete(context, couponRepository)
+                delete(context)
             }
         }
     }
 
-    private handleRequestWithoutPathTokens(Context context, CouponRepository couponRepository) {
+    private handleRequestWithoutPathTokens(Context context) {
         context.byMethod { method ->
             method.get {
-                getAll(context, couponRepository)
+                getAll(context)
             }
             method.post {
-                add(context, couponRepository)
+                add(context)
             }
             method.put {
-                update(context, couponRepository)
+                update(context)
             }
         }
     }
 
-    private void getAll(Context context, CouponRepository couponRepository) {
+    private void getAll(Context context) {
         Promise<List<Coupon>> couponsToRetrieve = couponRepository.get()
         couponsToRetrieve.then { coupons ->
             context.render(Jackson.json(coupons))
         }
     }
 
-    private void add(Context context, CouponRepository couponRepository) {
+    private void add(Context context) {
         Promise<Coupon> couponToStore = context.parse(Jackson.fromJson(Coupon.class))
         couponToStore.then { coupon ->
             try {
@@ -66,7 +71,7 @@ class CouponHandler extends InjectionHandler {
         }
     }
 
-    private void update(Context context, CouponRepository couponRepository) {
+    private void update(Context context) {
         Promise<Coupon> couponToUpdate = context.parse(Jackson.fromJson(Coupon.class))
         couponToUpdate.then { coupon ->
             try {
@@ -78,7 +83,7 @@ class CouponHandler extends InjectionHandler {
         }
     }
 
-    private void get(Context context, CouponRepository couponRepository) {
+    private void get(Context context) {
         Promise<Coupon> couponToRetrieve = couponRepository.get(context.pathTokens.code)
         couponToRetrieve.onError { notFoundException ->
             context.response.status(Status.of(404)).send()
@@ -87,7 +92,7 @@ class CouponHandler extends InjectionHandler {
         }
     }
 
-    private void delete(Context context, CouponRepository couponRepository) {
+    private void delete(Context context) {
         try {
             couponRepository.delete(context.pathTokens.code)
             context.response.status(Status.OK).send()
