@@ -8,6 +8,7 @@ import static ratpack.groovy.Groovy.ratpack
 ratpack {
     bindings {
         add(RequestLogger.ncsa())
+        add(new AuthHandler())
         add(new CORSHandler())
         add(new CouponHandler())
         add(new RedemptionHandler())
@@ -19,8 +20,9 @@ ratpack {
     }
 
     handlers {
-        all(RequestLogger)
+        all(AuthHandler)
         all(CORSHandler)
+        all(RequestLogger)
         prefix("api") {
             path("coupons", CouponHandler)
             path("coupons/:code", CouponHandler)

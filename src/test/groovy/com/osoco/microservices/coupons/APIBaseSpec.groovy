@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.osoco.microservices.coupons.model.Coupon
 import ratpack.groovy.test.GroovyRatpackMainApplicationUnderTest
 import ratpack.http.MediaType
+import ratpack.http.MutableHeaders
 import ratpack.test.http.TestHttpClient
 import spock.lang.AutoCleanup
 import spock.lang.Specification
@@ -36,11 +37,16 @@ class APIBaseSpec extends Specification {
 
     protected void setRequestBody(Coupon coupon) {
         requestSpec { spec ->
-            spec.headers.add("Content-Type", MediaType.APPLICATION_JSON)
+            addHeader(spec.headers, "Content-Type", MediaType.APPLICATION_JSON)
+            addHeader(spec.headers, "x-auth-header", "Test")
             spec.body { b ->
                 b.text(objectMapper.writeValueAsString(coupon))
             }
         }
+    }
+
+    protected void addHeader(MutableHeaders headers, CharSequence header, Object value) {
+        headers.add(header, value)
     }
 
 }

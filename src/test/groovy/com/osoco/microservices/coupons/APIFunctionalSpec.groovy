@@ -2,6 +2,7 @@ package com.osoco.microservices.coupons
 
 import com.fasterxml.jackson.databind.type.TypeFactory
 import com.osoco.microservices.coupons.model.Coupon
+import ratpack.test.http.TestHttpClient
 
 class APIFunctionalSpec extends APIBaseSpec {
 
@@ -20,6 +21,12 @@ class APIFunctionalSpec extends APIBaseSpec {
 
     def parseAsCoupon(String text) {
         objectMapper.readValue(text, Coupon.class)
+    }
+
+    private void setAuthHeader() {
+        requestSpec { spec ->
+            addHeader(spec.headers, "x-auth-header", "Test")
+        }
     }
 
     void "Adding new coupon"() {
@@ -56,6 +63,9 @@ class APIFunctionalSpec extends APIBaseSpec {
     }
 
     void "Get not existing coupon"() {
+        setup:
+        setAuthHeader()
+
         when:
         def response = get(COUPONS_URL + "/1234")
 
@@ -82,6 +92,9 @@ class APIFunctionalSpec extends APIBaseSpec {
     }
 
     void "Get empty coupons list"() {
+        setup:
+        setAuthHeader()
+
         when:
         def response = get(COUPONS_URL)
 
@@ -174,6 +187,9 @@ class APIFunctionalSpec extends APIBaseSpec {
     }
 
     void "Delete coupon that doesn't exist"() {
+        setup:
+        setAuthHeader()
+
         when:
         def response = delete(COUPONS_URL + "/doesntExist")
 
