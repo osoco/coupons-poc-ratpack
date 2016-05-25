@@ -2,7 +2,6 @@ package com.osoco.microservices.coupons.handlers
 
 import com.google.inject.Inject
 import com.osoco.microservices.coupons.dao.CouponRepository
-import com.osoco.microservices.coupons.exception.NotFoundException
 import com.osoco.microservices.coupons.model.Coupon
 import groovy.util.logging.Slf4j
 import ratpack.exec.Promise
@@ -67,9 +66,7 @@ class CouponHandler implements Handler {
 
     private void store(Context context, Coupon coupon) {
         Promise<Coupon> couponAdded = couponRepository.add(coupon)
-        couponAdded.onError { alreadyExistsException ->
-            context.response.status(Status.of(409)).send()
-        }.then {
+        couponAdded.then {
             context.response.status(Status.OK).send()
         }
     }
@@ -83,27 +80,21 @@ class CouponHandler implements Handler {
 
     private void update(Context context, Coupon coupon) {
         Promise<Coupon> couponUpdated = couponRepository.update(coupon)
-        couponUpdated.onError { notFoundException ->
-            context.response.status(Status.of(404)).send()
-        }.then {
+        couponUpdated.then {
             context.response.status(Status.OK).send()
         }
     }
 
     private void get(Context context) {
         Promise<Coupon> couponToRetrieve = couponRepository.get(context.pathTokens.code)
-        couponToRetrieve.onError { notFoundException ->
-            context.response.status(Status.of(404)).send()
-        }.then { coupon ->
+        couponToRetrieve.then { coupon ->
             context.render(Jackson.json(coupon))
         }
     }
 
     private void handleDelete(Context context) {
         Promise<Coupon> couponDeleted = couponRepository.delete(context.pathTokens.code)
-        couponDeleted.onError { notFoundException ->
-            context.response.status(Status.of(404)).send()
-        }.then {
+        couponDeleted.then {
             context.response.status(Status.OK).send()
         }
     }

@@ -1,8 +1,6 @@
-import com.osoco.microservices.coupons.handlers.CORSHandler
-import com.osoco.microservices.coupons.handlers.CouponHandler
-import com.osoco.microservices.coupons.handlers.RedemptionHandler
-import com.osoco.microservices.coupons.handlers.ValidationHandler
+import com.osoco.microservices.coupons.handlers.*
 import com.osoco.microservices.coupons.modules.CouponModule
+import ratpack.error.ServerErrorHandler
 import ratpack.handling.RequestLogger
 
 import static ratpack.groovy.Groovy.ratpack
@@ -15,7 +13,9 @@ ratpack {
         add(new RedemptionHandler())
         add(new ValidationHandler())
 
-        module(CouponModule.class)
+        module(CouponModule)
+
+        bind(ServerErrorHandler, ErrorHandler)
     }
 
     handlers {
