@@ -25,19 +25,23 @@ class APIFunctionalSpec extends Specification {
         resetRequest()
     }
 
-    Coupon buildCoupon(code, name, description, maxUsage, expirationDate, discount) {
-        Coupon coupon = [code: code, name: name, description: description, numMaxUsage: maxUsage, expirationDate: expirationDate, discount: discount]
-        coupon
-    }
-
-    def post(Coupon coupon) {
+    void setRequestBody(Coupon coupon) {
         requestSpec { spec ->
             spec.headers.add("Content-Type", MediaType.APPLICATION_JSON)
             spec.body { b ->
                 b.text(objectMapper.writeValueAsString(coupon))
             }
         }
+    }
+
+    def post(Coupon coupon) {
+        setRequestBody(coupon)
         post(COUPONS_URL)
+    }
+
+    def put(Coupon coupon) {
+        setRequestBody(coupon)
+        put(COUPONS_URL)
     }
 
     def populateForTesting(Coupon coupon) {
@@ -51,6 +55,11 @@ class APIFunctionalSpec extends Specification {
 
     def parseAsCoupon(String text) {
         objectMapper.readValue(text, Coupon.class)
+    }
+
+    Coupon buildCoupon(code, name, description, maxUsage, expirationDate, discount) {
+        Coupon coupon = [code: code, name: name, description: description, numMaxUsage: maxUsage, expirationDate: expirationDate, discount: discount]
+        coupon
     }
 
     void "Adding new coupon"() {
@@ -168,5 +177,40 @@ class APIFunctionalSpec extends Specification {
         list.get(1).equals(coupon1) || list.get(1).equals(coupon2)
     }
 
+    void "Updating coupon that doesn't exist"() {
+        when:
+        Coupon coupon = buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)
+
+        and:
+        def response = put(coupon)
+
+        then:
+        response.statusCode == 404
+    }
+
+    void "Updating coupon that exists"() {
+        setup:
+        Coupon coupon = buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)
+        populateForTesting(coupon)
+
+        when:
+        coupon.name = "updatedName"
+
+        and:
+        def response = put(coupon)
+
+        then:
+        response.statusCode == 200
+
+        when:
+        response = get(COUPONS_URL + "/" + coupon.code)
+
+        and:
+        Coupon parsedCoupon = parseAsCoupon(response.body.text)
+
+        then:
+        response.statusCode == 200
+        coupon.equals(parsedCoupon)
+    }
 
 }

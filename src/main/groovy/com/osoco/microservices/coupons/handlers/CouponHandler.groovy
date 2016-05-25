@@ -2,6 +2,7 @@ package com.osoco.microservices.coupons.handlers
 
 import com.osoco.microservices.coupons.dao.CouponRepository
 import com.osoco.microservices.coupons.exception.AlreadyExistsException
+import com.osoco.microservices.coupons.exception.NotFoundException
 import com.osoco.microservices.coupons.model.Coupon
 import groovy.util.logging.Slf4j
 import ratpack.exec.Promise
@@ -41,7 +42,15 @@ class CouponHandler extends InjectionHandler {
                 }
             }
             method.put {
-                context.render "PUT"
+                Promise<Coupon> couponToUpdate = context.parse(Jackson.fromJson(Coupon.class))
+                couponToUpdate.then { coupon ->
+                    try {
+                        couponRepository.update(coupon)
+                        context.response.status(Status.OK).send()
+                    } catch (NotFoundException except) {
+                        context.response.status(Status.of(404)).send()
+                    }
+                }
             }
         }
     }

@@ -13,4 +13,6 @@ interface CouponRepository {
 
     Promise<List<Coupon>> get()
 
+    void update(Coupon coupon) throws NotFoundException
+
 }

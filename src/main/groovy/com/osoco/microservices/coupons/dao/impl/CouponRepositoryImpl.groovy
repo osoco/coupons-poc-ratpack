@@ -49,4 +49,21 @@ class CouponRepositoryImpl implements CouponRepository {
             coupons.values().asList()
         }
     }
+
+    @Override
+    void update(Coupon coupon) throws NotFoundException {
+        log.info "Trying to update coupon ${coupon.code}"
+        // TODO jbr - coupon validation
+        Coupon existing = coupons.get(coupon.code)
+        log.info "Exists? " + (existing)
+        if (existing) {
+            // TODO jbr - asynchronous
+            log.info "Persisting"
+            coupons.put(coupon.code, coupon)
+            log.info "Coupon ${coupon.code} updated!"
+        } else {
+            log.info "NOT Existing coupon: ${coupon.code}"
+            throw new NotFoundException()
+        }
+    }
 }
