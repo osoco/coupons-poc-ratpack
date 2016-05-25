@@ -40,6 +40,19 @@ class APIFunctionalSpec extends Specification {
         post(COUPONS_URL)
     }
 
+    def populateForTesting(Coupon coupon) {
+        def response = post(coupon)
+        assert response.statusCode == 200
+    }
+
+    def parseAsCouponList(String text) {
+        objectMapper.readValue(text, TypeFactory.defaultInstance().constructCollectionType(List.class, Coupon.class))
+    }
+
+    def parseAsCoupon(String text) {
+        objectMapper.readValue(text, Coupon.class)
+    }
+
     void "Adding new coupon"() {
         when:
         Coupon coupon = buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)
@@ -54,7 +67,7 @@ class APIFunctionalSpec extends Specification {
         response = get(COUPONS_URL + "/" + coupon.code)
 
         and:
-        Coupon parsedCoupon = objectMapper.readValue(response.body.text, Coupon.class)
+        Coupon parsedCoupon = parseAsCoupon(response.body.text)
 
         then:
         response.statusCode == 200
@@ -62,13 +75,12 @@ class APIFunctionalSpec extends Specification {
     }
 
     void "Adding existing coupon"() {
-        when:
+        setup:
         Coupon coupon = buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)
+        populateForTesting(coupon)
+
+        when:
         def response = post(coupon)
-
-        assert response.statusCode == 200
-
-        response = post(coupon)
 
         then:
         response.statusCode == 409
@@ -83,23 +95,20 @@ class APIFunctionalSpec extends Specification {
     }
 
     void "Get existing coupon"() {
-        when:
+        setup:
         Coupon coupon = buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)
-
-        and:
-        def response = post(coupon)
-
-        then:
-        response.statusCode == 200
+        populateForTesting(coupon)
 
         when:
-        response = get(COUPONS_URL + "/" + coupon.code)
+        def response = get(COUPONS_URL + "/" + coupon.code)
 
         and:
-        Coupon parsedCoupon = objectMapper.readValue(response.body.text, Coupon.class)
+        Coupon parsedCoupon = parseAsCoupon(response.body.text)
 
         then:
         response.statusCode == 200
+
+        and:
         coupon.equals(parsedCoupon)
     }
 
@@ -108,65 +117,52 @@ class APIFunctionalSpec extends Specification {
         def response = get(COUPONS_URL)
 
         and:
-        List<Coupon> list = objectMapper.readValue(response.body.text,
-                TypeFactory.defaultInstance().constructCollectionType(List.class, Coupon.class));
+        List<Coupon> list = parseAsCouponList(response.body.text)
 
         then:
         response.statusCode == 200
+
+        and:
         list.isEmpty()
     }
 
     void "Get not empty coupons list"() {
-        when:
+        setup:
         Coupon coupon = buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)
-
-        and:
-        def response = post(coupon)
-
-        then:
-        response.statusCode == 200
+        populateForTesting(coupon)
 
         when:
-        response = get(COUPONS_URL)
+        def response = get(COUPONS_URL)
 
         and:
-        List<Coupon> list = objectMapper.readValue(response.body.text,
-                TypeFactory.defaultInstance().constructCollectionType(List.class, Coupon.class));
+        List<Coupon> list = parseAsCouponList(response.body.text)
 
         then:
         response.statusCode == 200
+
+        and:
         list.size() == 1
         list.get(0).equals(coupon)
     }
 
     void "Get not empty coupons list, 2 elements"() {
-        when:
+        setup:
         Coupon coupon1 = buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)
+        populateForTesting(coupon1)
 
-        and:
-        def response = post(coupon1)
-
-        then:
-        response.statusCode == 200
-
-        when:
         Coupon coupon2 = buildCoupon("code2", "name2", "description2", 100, "2016/05/26", 25)
-
-        and:
-        response = post(coupon2)
-
-        then:
-        response.statusCode == 200
+        populateForTesting(coupon2)
 
         when:
-        response = get(COUPONS_URL)
+        def response = get(COUPONS_URL)
 
         and:
-        List<Coupon> list = objectMapper.readValue(response.body.text,
-                TypeFactory.defaultInstance().constructCollectionType(List.class, Coupon.class));
+        List<Coupon> list = parseAsCouponList(response.body.text)
 
         then:
         response.statusCode == 200
+
+        and:
         list.size() == 2
         list.get(0).equals(coupon1) || list.get(0).equals(coupon2)
         list.get(1).equals(coupon1) || list.get(1).equals(coupon2)
