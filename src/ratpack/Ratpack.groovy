@@ -1,7 +1,10 @@
+import com.osoco.microservices.coupons.dao.CouponService
+import com.osoco.microservices.coupons.dao.impl.CouponServiceImpl
 import com.osoco.microservices.coupons.handlers.*
-import com.osoco.microservices.coupons.modules.CouponModule
 import ratpack.error.ServerErrorHandler
+import ratpack.groovy.sql.SqlModule
 import ratpack.handling.RequestLogger
+import ratpack.hikari.HikariModule
 
 import static ratpack.groovy.Groovy.ratpack
 
@@ -14,8 +17,19 @@ ratpack {
         add(new RedemptionHandler())
         add(new ValidationHandler())
 
-        module(CouponModule)
+        module(SqlModule)
+        module(HikariModule) { c ->
+            c.dataSourceClassName = 'org.postgresql.ds.PGSimpleDataSource'
+            c.addDataSourceProperty 'serverName', 'localhost'
+            c.addDataSourceProperty 'databaseName', 'microservice'
+            c.addDataSourceProperty 'user', 'postgres'
+            c.addDataSourceProperty 'password', 'postgres'
 
+            c.username = 'postgres'
+            c.password = 'postgres'
+        }
+
+        bind(CouponService, CouponServiceImpl)
         bind(ServerErrorHandler, ErrorHandler)
     }
 
