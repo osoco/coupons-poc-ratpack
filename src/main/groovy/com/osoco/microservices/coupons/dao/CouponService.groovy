@@ -5,7 +5,7 @@ import com.osoco.microservices.coupons.exception.NotFoundException
 import com.osoco.microservices.coupons.model.Coupon
 import ratpack.exec.Promise
 
-interface CouponRepository {
+interface CouponService {
 
     Promise<Coupon> add(Coupon coupon) throws AlreadyExistsException
 

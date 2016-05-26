@@ -3,8 +3,8 @@ package com.osoco.microservices.coupons.modules
 import com.google.inject.AbstractModule
 import com.google.inject.Provides
 import com.google.inject.Singleton
-import com.osoco.microservices.coupons.dao.CouponRepository
-import com.osoco.microservices.coupons.dao.impl.CouponRepositoryImpl
+import com.osoco.microservices.coupons.dao.CouponService
+import com.osoco.microservices.coupons.dao.impl.CouponServiceImpl
 
 class CouponModule extends AbstractModule {
 
@@ -14,7 +14,7 @@ class CouponModule extends AbstractModule {
 
     @Provides
     @Singleton
-    CouponRepository couponRepository() {
-        return new CouponRepositoryImpl()
+    CouponService couponRepository() {
+        return new CouponServiceImpl()
     }
 }

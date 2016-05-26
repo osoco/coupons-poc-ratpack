@@ -1,6 +1,6 @@
 package com.osoco.microservices.coupons.dao.impl
 
-import com.osoco.microservices.coupons.dao.CouponRepository
+import com.osoco.microservices.coupons.dao.CouponService
 import com.osoco.microservices.coupons.exception.AlreadyExistsException
 import com.osoco.microservices.coupons.exception.NotFoundException
 import com.osoco.microservices.coupons.model.Coupon
@@ -9,7 +9,7 @@ import ratpack.exec.Blocking
 import ratpack.exec.Promise
 
 @Slf4j
-class CouponRepositoryImpl implements CouponRepository {
+class CouponServiceImpl implements CouponService {
 
     Map<String, Coupon> coupons = new HashMap<String, Coupon>()
 
