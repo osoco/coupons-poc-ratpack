@@ -21,7 +21,7 @@ class CouponServiceSpec extends Specification {
     }
 
     private ExecResult<Coupon> addCouponForTesting() {
-        execHarness.yield { service.add(buildCoupon("testCode", "testName")) }
+        execHarness.execute { service.add(buildCoupon("testCode", "testName")) }
     }
 
     def 'add coupons to service'() {
@@ -89,7 +89,7 @@ class CouponServiceSpec extends Specification {
         coupons == [buildCoupon("testCode", "testName")]
 
         when:
-        execHarness.yield { service.delete('testCode') }
+        execHarness.execute { service.delete('testCode') }
 
         then:
         execHarness.yield { service.get() }.value == []
@@ -106,7 +106,7 @@ class CouponServiceSpec extends Specification {
         coupons == [buildCoupon("testCode", "testName")]
 
         when:
-        execHarness.yield { service.update(buildCoupon("testCode", "testName2")) }
+        execHarness.execute { service.update(buildCoupon("testCode", "testName2")) }
         and:
         coupons = execHarness.yield { service.get() }.value
 

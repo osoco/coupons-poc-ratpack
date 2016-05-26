@@ -4,6 +4,7 @@ import com.google.inject.Inject
 import com.osoco.microservices.coupons.dao.CouponService
 import com.osoco.microservices.coupons.model.Coupon
 import groovy.util.logging.Slf4j
+import ratpack.exec.Operation
 import ratpack.exec.Promise
 import ratpack.handling.Context
 import ratpack.handling.Handler
@@ -65,7 +66,7 @@ class CouponHandler implements Handler {
     }
 
     private void store(Context context, Coupon coupon) {
-        Promise<Coupon> couponAdded = couponRepository.add(coupon)
+        Operation couponAdded = couponRepository.add(coupon)
         couponAdded.then {
             context.response.status(Status.OK).send()
         }
@@ -79,7 +80,7 @@ class CouponHandler implements Handler {
     }
 
     private void update(Context context, Coupon coupon) {
-        Promise<Coupon> couponUpdated = couponRepository.update(coupon)
+        Operation couponUpdated = couponRepository.update(coupon)
         couponUpdated.then {
             context.response.status(Status.OK).send()
         }
@@ -93,7 +94,7 @@ class CouponHandler implements Handler {
     }
 
     private void handleDelete(Context context) {
-        Promise<Coupon> couponDeleted = couponRepository.delete(context.pathTokens.code)
+        Operation couponDeleted = couponRepository.delete(context.pathTokens.code)
         couponDeleted.then {
             context.response.status(Status.OK).send()
         }

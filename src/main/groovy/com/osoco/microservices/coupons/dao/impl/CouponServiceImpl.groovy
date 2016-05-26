@@ -6,6 +6,7 @@ import com.osoco.microservices.coupons.exception.NotFoundException
 import com.osoco.microservices.coupons.model.Coupon
 import groovy.util.logging.Slf4j
 import ratpack.exec.Blocking
+import ratpack.exec.Operation
 import ratpack.exec.Promise
 
 @Slf4j
@@ -14,9 +15,9 @@ class CouponServiceImpl implements CouponService {
     Map<String, Coupon> coupons = new HashMap<String, Coupon>()
 
     @Override
-    Promise<Coupon> add(Coupon coupon) throws AlreadyExistsException {
+    Operation add(Coupon coupon) throws AlreadyExistsException {
         log.info "Storing coupon $coupon.code"
-        Blocking.get {
+        Operation.of {
             // TODO jbr - coupon validation
             Coupon existing = coupons.get(coupon.code)
             if (existing) {
@@ -49,9 +50,9 @@ class CouponServiceImpl implements CouponService {
     }
 
     @Override
-    Promise<Coupon> update(Coupon coupon) throws NotFoundException {
+    Operation update(Coupon coupon) throws NotFoundException {
         log.info "Updating coupon $coupon.code"
-        Blocking.get {
+        Operation.of {
             // TODO jbr - coupon validation
             Coupon existing = coupons.get(coupon.code)
             if (existing) {
@@ -64,9 +65,9 @@ class CouponServiceImpl implements CouponService {
     }
 
     @Override
-    Promise<Coupon> delete(String code) throws NotFoundException {
+    Operation delete(String code) throws NotFoundException {
         log.info "Deleting coupon $code"
-        Blocking.get {
+        Operation.of {
             Coupon existing = coupons.get(code)
             if (existing) {
                 log.info "Coupon $code removed!"
