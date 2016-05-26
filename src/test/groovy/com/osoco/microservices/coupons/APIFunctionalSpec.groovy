@@ -2,7 +2,6 @@ package com.osoco.microservices.coupons
 
 import com.fasterxml.jackson.databind.type.TypeFactory
 import com.osoco.microservices.coupons.model.Coupon
-import ratpack.test.http.TestHttpClient
 
 class APIFunctionalSpec extends APIBaseSpec {
 
