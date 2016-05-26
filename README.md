@@ -45,4 +45,18 @@ That's it! You can start the basic app with
 
     ./gradlew run
 
-but it's up to you to add the bells, whistles, and meat of the application.
+In order to build your application to distribute, execute
+
+    ./gradlew stage
+
+This will generate your application prepared for its execution in folder
+
+    <proj>
+      |
+      +- build
+          |
+          +- install
+          |     |
+          |     +- <project_name>
+
+Inside <project_name> folder, you will find executables for several platforms, inside "bin" folder
