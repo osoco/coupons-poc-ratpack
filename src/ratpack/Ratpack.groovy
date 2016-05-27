@@ -1,7 +1,12 @@
+import com.osoco.microservices.coupons.dao.CouponService
+import com.osoco.microservices.coupons.dao.impl.CouponServiceImpl
 import com.osoco.microservices.coupons.handlers.*
 import com.osoco.microservices.coupons.modules.CouponModule
 import ratpack.error.ServerErrorHandler
 import ratpack.handling.RequestLogger
+
+import javax.validation.Validation
+import javax.validation.Validator
 
 import static ratpack.groovy.Groovy.ratpack
 
@@ -14,9 +19,10 @@ ratpack {
         add(new RedemptionHandler())
         add(new ValidationHandler())
 
-        module(CouponModule)
-
         bind(ServerErrorHandler, ErrorHandler)
+        bind(CouponService, CouponServiceImpl)
+
+        bindInstance(Validator, Validation.buildDefaultValidatorFactory().validator)
     }
 
     handlers {
