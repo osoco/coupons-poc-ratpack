@@ -11,20 +11,28 @@ import ratpack.exec.Blocking
 import ratpack.exec.Operation
 import ratpack.exec.Promise
 
+import javax.validation.ConstraintViolation
+import javax.validation.ValidationException
+import javax.validation.Validator
+
 @Slf4j
 class CouponServiceImpl implements CouponService {
 
     private Sql sql
+    private Validator validator
 
     @Inject
-    CouponServiceImpl(Sql sql) {
+    CouponServiceImpl(Sql sql, Validator validator) {
         this.sql = sql
+        this.validator = validator
     }
 
     @Override
-    Operation add(Coupon coupon) throws AlreadyExistsException {
+    Operation add(Coupon coupon) throws AlreadyExistsException, ValidationException {
         log.info "Storing coupon $coupon.code"
-        // TODO jbr - coupon validation
+
+        validate(coupon)
+
         Blocking.get {
             Coupon existingCoupon
             try {
@@ -40,6 +48,13 @@ class CouponServiceImpl implements CouponService {
                 throw new AlreadyExistsException()
             }
         }.operation()
+    }
+
+    private void validate(Coupon coupon) throws ValidationException {
+        final Set<ConstraintViolation<Coupon>> constraintViolations = validator.validate(coupon)
+        if (constraintViolations.size() > 0) {
+            throw new ValidationException()
+        }
     }
 
     @Override
@@ -69,9 +84,11 @@ class CouponServiceImpl implements CouponService {
     }
 
     @Override
-    Operation update(Coupon coupon) throws NotFoundException {
+    Operation update(Coupon coupon) throws NotFoundException, ValidationException {
         log.info "Updating coupon $coupon.code"
-        // TODO jbr - coupon validation
+
+        validate(coupon)
+
         Blocking.get {
             Coupon existing = internalGet(coupon.code)
             sql.execute "update coupon set name='$coupon.name', description='$coupon.description', maxusage=$coupon.numMaxUsage, expiration='$coupon.expirationDate', discount=$coupon.discount where code='$existing.code'"

@@ -6,6 +6,9 @@ import ratpack.groovy.sql.SqlModule
 import ratpack.handling.RequestLogger
 import ratpack.hikari.HikariModule
 
+import javax.validation.Validation
+import javax.validation.Validator
+
 import static ratpack.groovy.Groovy.ratpack
 
 ratpack {
@@ -31,6 +34,8 @@ ratpack {
 
         bind(CouponService, CouponServiceImpl)
         bind(ServerErrorHandler, ErrorHandler)
+
+        bindInstance(Validator, Validation.buildDefaultValidatorFactory().validator)
     }
 
     handlers {

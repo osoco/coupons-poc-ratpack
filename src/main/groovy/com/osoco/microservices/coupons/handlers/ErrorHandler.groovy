@@ -7,6 +7,8 @@ import ratpack.error.ServerErrorHandler
 import ratpack.handling.Context
 import ratpack.http.Status
 
+import javax.validation.ValidationException
+
 @Slf4j
 class ErrorHandler implements ServerErrorHandler {
     @Override
@@ -17,6 +19,8 @@ class ErrorHandler implements ServerErrorHandler {
             context.response.status(Status.of(409)).send()
         } else if (throwable instanceof NotFoundException) {
             context.response.status(Status.of(404)).send()
+        } else if (throwable instanceof ValidationException) {
+            context.response.status(Status.of(405)).send()
         } else {
             context.next()
         }
