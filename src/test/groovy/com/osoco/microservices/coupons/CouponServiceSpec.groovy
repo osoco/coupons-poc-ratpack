@@ -10,18 +10,18 @@ import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 
+import javax.validation.Validation
+
 class CouponServiceSpec extends Specification {
 
     @AutoCleanup
     ExecHarness execHarness = ExecHarness.harness()
-    CouponService service = new CouponServiceImpl()
-
-    Coupon buildCoupon(code, name) {
-        new Coupon(code: code, name: name)
-    }
+    CouponService service = new CouponServiceImpl(Validation.buildDefaultValidatorFactory().validator)
 
     private ExecResult<Coupon> addCouponForTesting() {
-        execHarness.execute { service.add(buildCoupon("testCode", "testName")) }
+        execHarness.execute {
+            service.add(APIBaseSpec.buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25))
+        }
     }
 
     def 'add coupons to service'() {
@@ -32,7 +32,7 @@ class CouponServiceSpec extends Specification {
         List<Coupon> coupons = execHarness.yield { service.get() }.value
 
         then:
-        coupons == [buildCoupon("testCode", "testName")]
+        coupons == [APIBaseSpec.buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)]
     }
 
     def 'retrieve coupons from service, empty list'() {
@@ -51,7 +51,7 @@ class CouponServiceSpec extends Specification {
         List<Coupon> coupons = execHarness.yield { service.get() }.value
 
         then:
-        coupons == [buildCoupon("testCode", "testName")]
+        coupons == [APIBaseSpec.buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)]
     }
 
     def 'retrieve coupon from service, by existing code'() {
@@ -59,17 +59,17 @@ class CouponServiceSpec extends Specification {
         addCouponForTesting()
 
         and:
-        Coupon coupon = execHarness.yield { service.get("testCode") }.value
+        Coupon coupon = execHarness.yield { service.get("code1") }.value
 
         then:
-        coupon == buildCoupon("testCode", "testName")
+        coupon == APIBaseSpec.buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)
     }
 
     def 'retrieve coupon from service, by not existing code'() {
         when:
         Exception ex
         try {
-            execHarness.yield { service.get("testCode") }.valueOrThrow
+            execHarness.yield { service.get("code1") }.valueOrThrow
         } catch (NotFoundException nfe) {
             ex = nfe
         }
@@ -86,10 +86,10 @@ class CouponServiceSpec extends Specification {
         List<Coupon> coupons = execHarness.yield { service.get() }.value
 
         then:
-        coupons == [buildCoupon("testCode", "testName")]
+        coupons == [APIBaseSpec.buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)]
 
         when:
-        execHarness.execute { service.delete('testCode') }
+        execHarness.execute { service.delete('code1') }
 
         then:
         execHarness.yield { service.get() }.value == []
@@ -103,15 +103,17 @@ class CouponServiceSpec extends Specification {
         List<Coupon> coupons = execHarness.yield { service.get() }.value
 
         then:
-        coupons == [buildCoupon("testCode", "testName")]
+        coupons == [APIBaseSpec.buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)]
 
         when:
-        execHarness.execute { service.update(buildCoupon("testCode", "testName2")) }
+        execHarness.execute {
+            service.update(APIBaseSpec.buildCoupon("code1", "name2", "description1", 100, "2016/05/26", 25))
+        }
         and:
         coupons = execHarness.yield { service.get() }.value
 
         then:
-        coupons == [buildCoupon("testCode", "testName2")]
+        coupons == [APIBaseSpec.buildCoupon("code1", "name2", "description1", 100, "2016/05/26", 25)]
     }
 
 }

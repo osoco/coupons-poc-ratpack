@@ -1,7 +1,6 @@
 import com.osoco.microservices.coupons.dao.CouponService
 import com.osoco.microservices.coupons.dao.impl.CouponServiceImpl
 import com.osoco.microservices.coupons.handlers.*
-import com.osoco.microservices.coupons.modules.CouponModule
 import ratpack.error.ServerErrorHandler
 import ratpack.handling.RequestLogger
 

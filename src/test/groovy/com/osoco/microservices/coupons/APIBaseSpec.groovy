@@ -20,7 +20,7 @@ class APIBaseSpec extends Specification {
 
     protected ObjectMapper objectMapper = new ObjectMapper()
 
-    protected Coupon buildCoupon(code, name, description, maxUsage, expirationDate, discount) {
+    protected static Coupon buildCoupon(code, name, description, maxUsage, expirationDate, discount) {
         Coupon coupon = [code: code, name: name, description: description, numMaxUsage: maxUsage, expirationDate: expirationDate, discount: discount]
         coupon
     }
