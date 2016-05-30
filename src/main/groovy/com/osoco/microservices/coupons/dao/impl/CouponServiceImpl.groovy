@@ -5,6 +5,7 @@ import com.osoco.microservices.coupons.dao.CouponService
 import com.osoco.microservices.coupons.exception.AlreadyExistsException
 import com.osoco.microservices.coupons.exception.NotFoundException
 import com.osoco.microservices.coupons.model.Coupon
+import groovy.sql.Sql
 import groovy.util.logging.Slf4j
 import ratpack.exec.Blocking
 import ratpack.exec.Operation
@@ -17,12 +18,12 @@ import javax.validation.Validator
 @Slf4j
 class CouponServiceImpl implements CouponService {
 
-    Map<String, Coupon> coupons = new HashMap<String, Coupon>()
-
+    private Sql sql
     private Validator validator
 
     @Inject
-    CouponServiceImpl(Validator validator) {
+    CouponServiceImpl(Sql sql, Validator validator) {
+        this.sql = sql
         this.validator = validator
     }
 
@@ -32,66 +33,70 @@ class CouponServiceImpl implements CouponService {
 
         validate(coupon)
 
-        Operation.of {
-            Coupon existing = coupons.get(coupon.code)
-            if (existing) {
-                throw new AlreadyExistsException()
-            } else {
-                log.info "Coupon $coupon.code added!"
-                coupons.put(coupon.code, coupon)
+        Blocking.get {
+            Coupon existingCoupon
+            try {
+                existingCoupon = internalGet(coupon.code)
+            } catch (NotFoundException nfe) {
             }
-        }
+
+            if (!existingCoupon) {
+                sql.execute "INSERT INTO coupon (code,name,description,maxusage,expiration,discount) " +
+                        "VALUES('$coupon.code', '$coupon.name', '$coupon.description', $coupon.numMaxUsage, '$coupon.expirationDate', $coupon.discount)"
+                log.info "Coupon $coupon.code added!"
+            } else {
+                throw new AlreadyExistsException()
+            }
+        }.operation()
     }
 
     @Override
     Promise<Coupon> get(String code) throws NotFoundException {
         log.info "Getting coupon with code: $code"
         Blocking.get {
-            Coupon existing = coupons.get(code)
-            if (existing) {
-                existing
-            } else {
-                throw new NotFoundException()
-            }
+            internalGet(code)
+        }
+    }
+
+    private Coupon internalGet(String code) {
+        def existing = sql.firstRow("select * from coupon where code=$code")
+        if (existing) {
+            new Coupon(code: existing.code, name: existing.name, description: existing.description, numMaxUsage: existing.maxusage, expirationDate: existing.expiration, discount: existing.discount)
+        } else {
+            throw new NotFoundException()
         }
     }
 
     @Override
     Promise<List<Coupon>> get() {
         Blocking.get {
-            coupons.values().asList()
+            sql.rows("select * from coupon").collect {
+                new Coupon(code: it.code, name: it.name, description: it.description, numMaxUsage: it.maxusage, expirationDate: it.expiration, discount: it.discount)
+            }
         }
     }
 
     @Override
-    Operation update(Coupon coupon) throws NotFoundException {
+    Operation update(Coupon coupon) throws NotFoundException, ValidationException {
         log.info "Updating coupon $coupon.code"
 
         validate(coupon)
 
-        Operation.of {
-            Coupon existing = coupons.get(coupon.code)
-            if (existing) {
-                log.info "Coupon $coupon.code updated!"
-                coupons.put(coupon.code, coupon)
-            } else {
-                throw new NotFoundException()
-            }
-        }
+        Blocking.get {
+            Coupon existing = internalGet(coupon.code)
+            sql.execute "update coupon set name='$coupon.name', description='$coupon.description', maxusage=$coupon.numMaxUsage, expiration='$coupon.expirationDate', discount=$coupon.discount where code='$existing.code'"
+            log.info "Coupon $coupon.code updated!"
+        }.operation()
     }
 
     @Override
     Operation delete(String code) throws NotFoundException {
         log.info "Deleting coupon $code"
-        Operation.of {
-            Coupon existing = coupons.get(code)
-            if (existing) {
-                log.info "Coupon $code removed!"
-                coupons.remove(code)
-            } else {
-                throw new NotFoundException()
-            }
-        }
+        Blocking.get {
+            Coupon existing = internalGet(code)
+            sql.execute "delete from coupon where code=$existing.code"
+            log.info "Coupon $code deleted!"
+        }.operation()
     }
 
     private void validate(Coupon coupon) throws ValidationException {
