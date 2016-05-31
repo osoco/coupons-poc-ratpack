@@ -1,17 +1,12 @@
 package com.osoco.microservices.coupons
 
-import com.osoco.microservices.coupons.model.Coupon
 import spock.lang.Unroll
 
-class APIInfrastructureSpec extends APIBaseSpec {
-
-    Coupon coupon1, coupon2
+class APIInfrastructureSpec extends APIApplicationBaseSpec {
 
     def setup() {
-        coupon1 = buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)
         populateForTesting(coupon1)
 
-        coupon2 = buildCoupon("code2", "name2", "description2", 100, "2016/05/26", 25)
         resetRequest()
         setRequestBody(coupon2)
     }

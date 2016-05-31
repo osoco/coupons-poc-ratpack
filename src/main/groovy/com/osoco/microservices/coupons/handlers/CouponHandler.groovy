@@ -1,7 +1,7 @@
 package com.osoco.microservices.coupons.handlers
 
 import com.google.inject.Inject
-import com.osoco.microservices.coupons.dao.CouponService
+import com.osoco.microservices.coupons.dao.CouponRepository
 import com.osoco.microservices.coupons.model.Coupon
 import groovy.util.logging.Slf4j
 import ratpack.exec.Operation
@@ -15,7 +15,7 @@ import ratpack.jackson.Jackson
 class CouponHandler implements Handler {
 
     @Inject
-    CouponService couponRepository
+    CouponRepository couponRepository
 
     @Override
     public void handle(Context context) throws Exception {

@@ -3,7 +3,7 @@ package com.osoco.microservices.coupons
 import com.fasterxml.jackson.databind.type.TypeFactory
 import com.osoco.microservices.coupons.model.Coupon
 
-class APIFunctionalSpec extends APIBaseSpec {
+class APIFunctionalSpec extends APIApplicationBaseSpec {
 
     def setup() {
         resetRequest()
@@ -30,32 +30,28 @@ class APIFunctionalSpec extends APIBaseSpec {
 
     void "Adding new coupon"() {
         when:
-        Coupon coupon = buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)
-
-        and:
-        def response = post(coupon)
+        def response = post(coupon1)
 
         then:
         response.statusCode == 200
 
         when:
-        response = get(COUPONS_URL + "/" + coupon.code)
+        response = get(COUPONS_URL + "/" + coupon1.code)
 
         and:
         Coupon parsedCoupon = parseAsCoupon(response.body.text)
 
         then:
         response.statusCode == 200
-        coupon.equals(parsedCoupon)
+        coupon1.equals(parsedCoupon)
     }
 
     void "Adding existing coupon"() {
         setup:
-        Coupon coupon = buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)
-        populateForTesting(coupon)
+        populateForTesting(coupon1)
 
         when:
-        def response = post(coupon)
+        def response = post(coupon1)
 
         then:
         response.statusCode == 409
@@ -74,11 +70,10 @@ class APIFunctionalSpec extends APIBaseSpec {
 
     void "Get existing coupon"() {
         setup:
-        Coupon coupon = buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)
-        populateForTesting(coupon)
+        populateForTesting(coupon1)
 
         when:
-        def response = get(COUPONS_URL + "/" + coupon.code)
+        def response = get(COUPONS_URL + "/" + coupon1.code)
 
         and:
         Coupon parsedCoupon = parseAsCoupon(response.body.text)
@@ -87,7 +82,7 @@ class APIFunctionalSpec extends APIBaseSpec {
         response.statusCode == 200
 
         and:
-        coupon.equals(parsedCoupon)
+        coupon1.equals(parsedCoupon)
     }
 
     void "Get empty coupons list"() {
@@ -109,8 +104,7 @@ class APIFunctionalSpec extends APIBaseSpec {
 
     void "Get not empty coupons list"() {
         setup:
-        Coupon coupon = buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)
-        populateForTesting(coupon)
+        populateForTesting(coupon1)
 
         when:
         def response = get(COUPONS_URL)
@@ -123,15 +117,12 @@ class APIFunctionalSpec extends APIBaseSpec {
 
         and:
         list.size() == 1
-        list.get(0).equals(coupon)
+        list.get(0).equals(coupon1)
     }
 
     void "Get not empty coupons list, 2 elements"() {
         setup:
-        Coupon coupon1 = buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)
         populateForTesting(coupon1)
-
-        Coupon coupon2 = buildCoupon("code2", "name2", "description2", 100, "2016/05/26", 25)
         populateForTesting(coupon2)
 
         when:
@@ -151,10 +142,7 @@ class APIFunctionalSpec extends APIBaseSpec {
 
     void "Updating coupon that doesn't exist"() {
         when:
-        Coupon coupon = buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)
-
-        and:
-        def response = put(coupon)
+        def response = put(coupon1)
 
         then:
         response.statusCode == 404
@@ -162,7 +150,7 @@ class APIFunctionalSpec extends APIBaseSpec {
 
     void "Updating coupon that exists"() {
         setup:
-        Coupon coupon = buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)
+        Coupon coupon = buildCoupon("code3", "name3", "description3", 100, "2016-05-26", 25)
         populateForTesting(coupon)
 
         when:
@@ -198,11 +186,10 @@ class APIFunctionalSpec extends APIBaseSpec {
 
     void "Delete coupon that exists"() {
         setup:
-        Coupon coupon = buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)
-        populateForTesting(coupon)
+        populateForTesting(coupon1)
 
         when:
-        def response = delete(COUPONS_URL + "/" + coupon.code)
+        def response = delete(COUPONS_URL + "/" + coupon1.code)
 
         then:
         response.statusCode == 200

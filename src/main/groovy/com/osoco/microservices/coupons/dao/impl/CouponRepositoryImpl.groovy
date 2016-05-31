@@ -1,9 +1,10 @@
 package com.osoco.microservices.coupons.dao.impl
 
 import com.google.inject.Inject
-import com.osoco.microservices.coupons.dao.CouponService
+import com.osoco.microservices.coupons.dao.CouponRepository
 import com.osoco.microservices.coupons.exception.AlreadyExistsException
 import com.osoco.microservices.coupons.exception.NotFoundException
+import com.osoco.microservices.coupons.exception.ValidationException
 import com.osoco.microservices.coupons.model.Coupon
 import groovy.sql.Sql
 import groovy.util.logging.Slf4j
@@ -12,17 +13,16 @@ import ratpack.exec.Operation
 import ratpack.exec.Promise
 
 import javax.validation.ConstraintViolation
-import javax.validation.ValidationException
 import javax.validation.Validator
 
 @Slf4j
-class CouponServiceImpl implements CouponService {
+class CouponRepositoryImpl implements CouponRepository {
 
     private Sql sql
     private Validator validator
 
     @Inject
-    CouponServiceImpl(Sql sql, Validator validator) {
+    CouponRepositoryImpl(Sql sql, Validator validator) {
         this.sql = sql
         this.validator = validator
     }

@@ -1,26 +1,44 @@
 package com.osoco.microservices.coupons
 
-import com.osoco.microservices.coupons.dao.CouponService
-import com.osoco.microservices.coupons.dao.impl.CouponServiceImpl
+import com.osoco.microservices.coupons.dao.CouponRepository
+import com.osoco.microservices.coupons.dao.impl.CouponRepositoryImpl
 import com.osoco.microservices.coupons.exception.NotFoundException
 import com.osoco.microservices.coupons.model.Coupon
+import groovy.sql.Sql
 import ratpack.exec.ExecResult
 import ratpack.exec.Promise
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
-import spock.lang.Specification
+import spock.lang.Shared
 
 import javax.validation.Validation
 
-class CouponServiceSpec extends Specification {
+class CouponServiceSpec extends APIBaseSpec {
 
     @AutoCleanup
     ExecHarness execHarness = ExecHarness.harness()
-    CouponService service = new CouponServiceImpl(Validation.buildDefaultValidatorFactory().validator)
+    @Shared
+    CouponRepository service
+    @Shared
+    Sql sql
+
+    def setupSpec() {
+        sql = Sql.newInstance("jdbc:h2:mem:test")
+        sql.execute(CouponRepository.SCHEMA)
+        service = new CouponRepositoryImpl(sql, Validation.buildDefaultValidatorFactory().validator)
+    }
+
+    def cleanupSpec() {
+        sql.execute("DROP TABLE coupon")
+    }
+
+    def cleanup() {
+        sql.execute("DELETE FROM coupon")
+    }
 
     private ExecResult<Coupon> addCouponForTesting() {
         execHarness.execute {
-            service.add(APIBaseSpec.buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25))
+            service.add(coupon1)
         }
     }
 
@@ -32,7 +50,7 @@ class CouponServiceSpec extends Specification {
         List<Coupon> coupons = execHarness.yield { service.get() }.value
 
         then:
-        coupons == [APIBaseSpec.buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)]
+        coupons == [coupon1]
     }
 
     def 'retrieve coupons from service, empty list'() {
@@ -51,7 +69,7 @@ class CouponServiceSpec extends Specification {
         List<Coupon> coupons = execHarness.yield { service.get() }.value
 
         then:
-        coupons == [APIBaseSpec.buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)]
+        coupons == [coupon1]
     }
 
     def 'retrieve coupon from service, by existing code'() {
@@ -62,7 +80,7 @@ class CouponServiceSpec extends Specification {
         Coupon coupon = execHarness.yield { service.get("code1") }.value
 
         then:
-        coupon == APIBaseSpec.buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)
+        coupon == coupon1
     }
 
     def 'retrieve coupon from service, by not existing code'() {
@@ -86,7 +104,7 @@ class CouponServiceSpec extends Specification {
         List<Coupon> coupons = execHarness.yield { service.get() }.value
 
         then:
-        coupons == [APIBaseSpec.buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)]
+        coupons == [coupon1]
 
         when:
         execHarness.execute { service.delete('code1') }
@@ -103,17 +121,19 @@ class CouponServiceSpec extends Specification {
         List<Coupon> coupons = execHarness.yield { service.get() }.value
 
         then:
-        coupons == [APIBaseSpec.buildCoupon("code1", "name1", "description1", 100, "2016/05/26", 25)]
+        coupons == [coupon1]
 
         when:
+        Coupon existingCoupon = coupons[0]
+        existingCoupon.name = 'NameChanged'
         execHarness.execute {
-            service.update(APIBaseSpec.buildCoupon("code1", "name2", "description1", 100, "2016/05/26", 25))
+            service.update(existingCoupon)
         }
         and:
         coupons = execHarness.yield { service.get() }.value
 
         then:
-        coupons == [APIBaseSpec.buildCoupon("code1", "name2", "description1", 100, "2016/05/26", 25)]
+        coupons == [existingCoupon]
     }
 
 }
