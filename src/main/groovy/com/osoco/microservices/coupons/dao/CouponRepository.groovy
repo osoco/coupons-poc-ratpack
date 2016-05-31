@@ -11,7 +11,7 @@ import ratpack.exec.Promise
 interface CouponRepository {
 
     public static
-    final String SCHEMA = "CREATE TABLE coupon(code varchar(10) primary key, name varchar(50) not null, description varchar(255) not null, maxUsage int not null, expiration date not null, discount int not null)"
+    final String SCHEMA = "CREATE TABLE IF NOT EXISTS coupon(code varchar(10) primary key, name varchar(50) not null, description varchar(255) not null, maxUsage int not null, expiration date not null, discount int not null)"
 
     Operation add(Coupon coupon) throws AlreadyExistsException, ValidationException
 

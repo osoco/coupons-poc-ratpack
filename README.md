@@ -21,6 +21,7 @@ In this project you get:
           |     |
           |     +- Ratpack.groovy
           |     +- ratpack.properties
+          |     +- application.properties
           |
           +- main
           |   |
@@ -53,3 +54,15 @@ This will generate your application prepared for its execution in folder
           |     +- <project_name>
 
 Inside <project_name> folder, you will find executables for several platforms, inside "bin" folder
+
+In order to configure application, it can be accomplished in several ways:
+
+* Changing parameter values in application.properties file, before generate application package
+* Overriding existing parameters in application.properties, by setting System properties, with "msc." prefix.
+* Overriding existing parameters in application.properties, by setting environment variables, with "MSC_" prefix.
+
+Ex:
+
+    db.host=tcp://localhost --> application.properties
+    msc.db.host=tcp://live.db.host --> System properties
+    MSC_DB__HOST=tcp//development.db.host --> Environment variable

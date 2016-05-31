@@ -1,6 +1,8 @@
+import com.osoco.microservices.coupons.config.DbConfig
 import com.osoco.microservices.coupons.dao.CouponRepository
 import com.osoco.microservices.coupons.dao.impl.CouponRepositoryImpl
 import com.osoco.microservices.coupons.handlers.*
+import ratpack.config.ConfigData
 import ratpack.error.ServerErrorHandler
 import ratpack.groovy.sql.SqlModule
 import ratpack.handling.RequestLogger
@@ -17,6 +19,15 @@ import static ratpack.groovy.Groovy.ratpack
 
 ratpack {
     bindings {
+        def configData = ConfigData.of { d ->
+            d.props("$serverConfig.baseDir.file/application.properties")
+                    .sysProps("msc.")
+                    .env("MSC_")
+                    .build()
+        }
+
+        bindInstance(Validator, Validation.buildDefaultValidatorFactory().validator)
+
         add(RequestLogger.ncsa())
         add(new AuthHandler())
         add(new CORSHandler())
@@ -25,18 +36,17 @@ ratpack {
         add(new ValidationHandler())
 
         module(SqlModule)
-        module(HikariModule) { c ->
-            c.dataSourceClassName = 'org.h2.jdbcx.JdbcDataSource'
-            c.addDataSourceProperty 'URL', "jdbc:h2:mem:test"
+        module(HikariModule) { hikariConfig ->
+            DbConfig dbConfig = configData.get("/db", DbConfig)
+            hikariConfig.dataSourceClassName = 'org.h2.jdbcx.JdbcDataSource'
+            hikariConfig.username = dbConfig.username
+            hikariConfig.password = dbConfig.password
 
-            c.username = 'sa'
-            c.password = ''
+            hikariConfig.addDataSourceProperty 'URL', dbConfig.buildUrl()
         }
 
         bind(CouponRepository, CouponRepositoryImpl)
         bind(ServerErrorHandler, ErrorHandler)
-
-        bindInstance(Validator, Validation.buildDefaultValidatorFactory().validator)
 
         bindInstance(new Service() {
             @Override

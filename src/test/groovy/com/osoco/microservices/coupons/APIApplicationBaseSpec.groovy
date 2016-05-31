@@ -13,9 +13,13 @@ class APIApplicationBaseSpec extends APIBaseSpec {
     @AutoCleanup
     GroovyRatpackMainApplicationUnderTest aut = new GroovyRatpackMainApplicationUnderTest()
     @Delegate
-    TestHttpClient client = TestHttpClient.testHttpClient(aut)
+    TestHttpClient client = aut.httpClient
 
     protected ObjectMapper objectMapper = new ObjectMapper()
+
+    def setup() {
+        System.setProperty('msc.db.inMemory', 'true')
+    }
 
     protected def populateForTesting(Coupon coupon) {
         def response = post(coupon)
