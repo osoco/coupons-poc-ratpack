@@ -4,9 +4,7 @@ import com.osoco.microservices.coupons.model.Coupon
 import spock.lang.Shared
 import spock.lang.Specification
 
-class APIBaseSpec extends Specification {
-
-    protected static final String COUPONS_URL = "api/coupons"
+class BaseSpec extends Specification {
 
     @Shared
     Coupon coupon1, coupon2
@@ -20,5 +18,6 @@ class APIBaseSpec extends Specification {
         Coupon coupon = [code: code, name: name, description: description, numMaxUsage: maxUsage, expirationDate: expirationDate, discount: discount]
         coupon
     }
+
 
 }

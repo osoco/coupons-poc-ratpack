@@ -7,18 +7,34 @@ import ratpack.http.MediaType
 import ratpack.http.MutableHeaders
 import ratpack.test.http.TestHttpClient
 import spock.lang.AutoCleanup
+import spock.lang.Shared
+import spock.lang.Specification
 
-class APIApplicationBaseSpec extends APIBaseSpec {
+class APIFunctionalBaseSpec extends Specification {
+
+    protected static final String COUPONS_URL = "api/coupons"
 
     @AutoCleanup
     GroovyRatpackMainApplicationUnderTest aut = new GroovyRatpackMainApplicationUnderTest()
     @Delegate
     TestHttpClient client = aut.httpClient
+    @Shared
+    Coupon coupon1, coupon2
 
     protected ObjectMapper objectMapper = new ObjectMapper()
 
+    def setupSpec() {
+        coupon1 = buildCoupon("code1", "name1", "description1", 100, "2016-05-26", 25)
+        coupon2 = buildCoupon("code2", "name2", "description2", 100, "2016-05-26", 25)
+    }
+
     def setup() {
         System.setProperty('msc.db.inMemory', 'true')
+    }
+
+    protected static Coupon buildCoupon(code, name, description, maxUsage, expirationDate, discount) {
+        Coupon coupon = [code: code, name: name, description: description, numMaxUsage: maxUsage, expirationDate: expirationDate, discount: discount]
+        coupon
     }
 
     protected def populateForTesting(Coupon coupon) {

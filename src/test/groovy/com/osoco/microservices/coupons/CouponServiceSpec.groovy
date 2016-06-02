@@ -13,7 +13,7 @@ import spock.lang.Shared
 
 import javax.validation.Validation
 
-class CouponServiceSpec extends APIBaseSpec {
+class CouponServiceSpec extends BaseSpec {
 
     @AutoCleanup
     ExecHarness execHarness = ExecHarness.harness()

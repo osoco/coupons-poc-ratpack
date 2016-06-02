@@ -31,6 +31,53 @@ dependencies {
   testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
 }
 
+configurations {
+  integrationTestCompile.extendsFrom testCompile
+  integrationTestRuntime.extendsFrom testRuntime
+  functionalTestCompile.extendsFrom testCompile
+  functionalTestRuntime.extendsFrom testRuntime
+}
+
+sourceSets {
+  integrationTest {
+    groovy {
+      compileClasspath += main.output + test.output
+      runtimeClasspath += main.output + test.output
+      srcDir file('src/integration-test/groovy')
+    }
+    resources.srcDir file('src/integration-test/resources')
+  }
+  functionalTest {
+    groovy {
+      compileClasspath += main.output + test.output
+      runtimeClasspath += main.output + test.output
+      srcDir file('src/functional-test/groovy')
+    }
+    resources.srcDir file('src/functional-test/resources')
+  }
+}
+
+task integrationTest(type: Test) {
+  testClassesDir = sourceSets.integrationTest.output.classesDir
+  classpath = sourceSets.integrationTest.runtimeClasspath
+  outputs.upToDateWhen { false }
+}
+
+task functionalTest(type: Test) {
+  testClassesDir = sourceSets.functionalTest.output.classesDir
+  classpath = sourceSets.functionalTest.runtimeClasspath
+  outputs.upToDateWhen { false }
+}
+
 task stage {
   dependsOn installDist
 }
+
+tasks.withType(Test) {
+  reports.html.destination = file("${reporting.baseDir}/${name}")
+}
+
+check.dependsOn integrationTest
+check.dependsOn functionalTest
+integrationTest.mustRunAfter test
+functionalTest.mustRunAfter integrationTest

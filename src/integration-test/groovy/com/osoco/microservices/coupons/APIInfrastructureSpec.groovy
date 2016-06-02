@@ -2,7 +2,7 @@ package com.osoco.microservices.coupons
 
 import spock.lang.Unroll
 
-class APIInfrastructureSpec extends APIApplicationBaseSpec {
+class APIInfrastructureSpec extends APIIntegrationBaseSpec {
 
     def setup() {
         populateForTesting(coupon1)

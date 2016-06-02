@@ -3,7 +3,7 @@ package com.osoco.microservices.coupons
 import com.fasterxml.jackson.databind.type.TypeFactory
 import com.osoco.microservices.coupons.model.Coupon
 
-class APIFunctionalSpec extends APIApplicationBaseSpec {
+class APIFunctionalSpec extends APIFunctionalBaseSpec {
 
     def setup() {
         resetRequest()
